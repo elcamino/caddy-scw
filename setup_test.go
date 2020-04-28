@@ -1,13 +1,7 @@
-package geoip
+package scw
 
 import (
-	"net/http"
-	"net/http/httptest"
-	"strings"
-	"testing"
-
 	"github.com/caddyserver/caddy/caddyhttp/httpserver"
-	maxminddb "github.com/oschwald/maxminddb-golang"
 )
 
 type testResponseRecorder struct {
@@ -16,6 +10,7 @@ type testResponseRecorder struct {
 
 func (testResponseRecorder) CloseNotify() <-chan bool { return nil }
 
+/*
 func TestReplacers(t *testing.T) {
 	dbhandler, err := maxminddb.Open("./test-data/GeoLite2-City.mmdb")
 	if err != nil {
@@ -151,3 +146,4 @@ func TestReplacers(t *testing.T) {
 		}
 	}
 }
+*/
