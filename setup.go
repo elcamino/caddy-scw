@@ -88,20 +88,36 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) (int, error) 
 }
 
 func (h Handler) lookupIP(w http.ResponseWriter, r *http.Request) {
+	replacer := newReplacer(r)
+	isBlocked := false
+
 	rip := r.RemoteAddr[0:strings.Index(r.RemoteAddr, ":")]
 	if !isPrivateIP(net.ParseIP(rip)) && h.BlockedIPs.IsBlocked(rip, true) {
-		r.Header.Add("X-SCW-ISBLOCKED", "true")
-		return
+		isBlocked = true
 	}
 
+OUTER:
 	for _, xff := range r.Header.Values("X-Forwarded-For") {
 		for _, ip := range strings.Split(xff, ",") {
 			rip = ip[0:strings.Index(strings.TrimSpace(ip), ":")]
 
 			if !isPrivateIP(net.ParseIP(rip)) && h.BlockedIPs.IsBlocked(rip, true) {
-				r.Header.Add("X-SCW-ISBLOCKED", "true")
-				return
+				isBlocked = true
+				break OUTER
 			}
 		}
 	}
+
+	if !isBlocked {
+		return
+	}
+
+	replacer.Set("scw_is_blocked", "true")
+	if rr, ok := w.(*httpserver.ResponseRecorder); ok {
+		rr.Replacer = replacer
+	}
+}
+
+func newReplacer(r *http.Request) httpserver.Replacer {
+	return httpserver.NewReplacer(r, nil, "")
 }
